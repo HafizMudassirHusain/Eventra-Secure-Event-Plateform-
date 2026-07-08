@@ -16,11 +16,11 @@ export function useEvent(id: string) {
   });
 }
 
-export function useRegisterForEvent(eventId: string) {
+export function useRegisterForEvent(eventId: string, token: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { fullName: string; email: string; userId: string }) =>
-      registerForEvent(eventId, payload),
+    mutationFn: (payload: { fullName: string; email: string }) =>
+      registerForEvent(eventId, payload, token as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["my-registrations"] });

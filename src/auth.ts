@@ -1,11 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { apiUrl } from "@/lib/api";
 
-// MOCK AUTH — for frontend testing only, before the backend exists.
-// Google OAuth and the real `/auth/login` backend call are disabled here
-// (both require infra that isn't built yet). Any email/password combo
-// signs in as a fake user. Swap this back to a real backend call
-// (see git history) once `POST /auth/login` exists.
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -16,11 +12,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const email = String(credentials.email);
+        const res = await fetch(apiUrl("/auth/login"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: credentials.email,
+            password: credentials.password,
+          }),
+        });
+
+        if (!res.ok) return null;
+
+        const data = await res.json();
         return {
-          id: `mock_${Buffer.from(email).toString("hex").slice(0, 12)}`,
-          email,
-          name: email.split("@")[0],
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.name,
+          accessToken: data.accessToken as string,
         };
       },
     }),
@@ -32,10 +40,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/login",
   },
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.accessToken = (user as { accessToken?: string }).accessToken;
+      }
+      return token;
+    },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
       }
+      session.accessToken = token.accessToken as string;
       return session;
     },
   },

@@ -20,8 +20,8 @@ export default function TicketPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { status } = useSession();
-  const { data: registration, isLoading } = useRegistration(id);
+  const { data: session, status } = useSession();
+  const { data: registration, isLoading } = useRegistration(id, session?.accessToken);
 
   useEffect(() => {
     if (status === "unauthenticated") {

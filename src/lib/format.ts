@@ -1,3 +1,12 @@
+import { EventDetail, EventSummary } from "@/types/event";
+
+export function toSummary(event: EventDetail): EventSummary {
+  const { organizerId, organizerName, ...summary } = event;
+  void organizerId;
+  void organizerName;
+  return summary;
+}
+
 export function formatEventDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
     weekday: "short",

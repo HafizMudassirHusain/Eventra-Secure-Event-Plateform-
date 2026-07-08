@@ -34,8 +34,8 @@ const statusVariant: Record<RegistrationStatus, "default" | "secondary" | "destr
 export default function MyRegistrationsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const { data: registrations, isLoading } = useMyRegistrations(session?.user?.id);
-  const cancelRegistration = useCancelRegistration();
+  const { data: registrations, isLoading } = useMyRegistrations(session?.accessToken);
+  const cancelRegistration = useCancelRegistration(session?.accessToken);
 
   useEffect(() => {
     if (status === "unauthenticated") {

@@ -6,152 +6,124 @@ import {
   Registration,
   RegistrationWithEvent,
 } from "@/types/event";
-import { mockEvents, mockRegistrations, toSummary } from "@/lib/mock-data";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Backend isn't built yet, so these resolve against mock data.
-// Swap the body for a `fetch(`${API_URL}/...`)` call once the NestJS API exists —
-// the function signatures are the contract the UI already depends on.
-function delay<T>(value: T, ms = 300): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+export function apiUrl(path: string) {
+  return `${API_URL}${path}`;
 }
 
-export async function listEvents(): Promise<EventSummary[]> {
-  return delay(mockEvents.map(toSummary));
-}
+async function request<T>(
+  path: string,
+  options: { method?: string; token?: string; body?: unknown } = {}
+): Promise<T> {
+  const res = await fetch(apiUrl(path), {
+    method: options.method ?? "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+    },
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  });
 
-export async function getEvent(id: string): Promise<EventDetail | null> {
-  const event = mockEvents.find((e) => e.id === id) ?? null;
-  return delay(event);
-}
-
-export async function registerForEvent(
-  eventId: string,
-  payload: { fullName: string; email: string; userId: string }
-): Promise<{ registrationId: string }> {
-  const event = mockEvents.find((e) => e.id === eventId);
-  if (!event) throw new Error("Event not found");
-  if (event.status === "cancelled") throw new Error("Event is cancelled");
-
-  const registration: Registration = {
-    id: `reg_${Math.random().toString(36).slice(2, 10)}`,
-    eventId,
-    userId: payload.userId,
-    attendeeName: payload.fullName,
-    attendeeEmail: payload.email,
-    status: event.ticketPrice === 0 ? "confirmed" : "pending_payment",
-    createdAt: new Date().toISOString(),
-    qrToken: event.ticketPrice === 0 ? `mock-qr-${Math.random().toString(36).slice(2, 10)}` : null,
-  };
-  mockRegistrations.push(registration);
-  event.registeredCount += 1;
-
-  return delay({ registrationId: registration.id });
-}
-
-export async function payForRegistration(
-  registrationId: string
-): Promise<Registration> {
-  const registration = mockRegistrations.find((r) => r.id === registrationId);
-  if (!registration) throw new Error("Registration not found");
-
-  registration.status = "confirmed";
-  registration.qrToken = `mock-qr-${Math.random().toString(36).slice(2, 10)}`;
-
-  return delay(registration);
-}
-
-export async function listMyRegistrations(
-  userId: string
-): Promise<RegistrationWithEvent[]> {
-  const registrations = mockRegistrations
-    .filter((r) => r.userId === userId)
-    .map((r) => {
-      const event = mockEvents.find((e) => e.id === r.eventId);
-      return event ? { ...r, event: toSummary(event) } : null;
-    })
-    .filter((r): r is RegistrationWithEvent => r !== null)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-  return delay(registrations);
-}
-
-export async function getRegistration(
-  registrationId: string
-): Promise<RegistrationWithEvent | null> {
-  const registration = mockRegistrations.find((r) => r.id === registrationId);
-  if (!registration) return delay(null);
-  const event = mockEvents.find((e) => e.id === registration.eventId);
-  if (!event) return delay(null);
-  return delay({ ...registration, event: toSummary(event) });
-}
-
-export async function cancelRegistration(registrationId: string): Promise<void> {
-  const registration = mockRegistrations.find((r) => r.id === registrationId);
-  if (registration) {
-    registration.status = "cancelled";
-    const event = mockEvents.find((e) => e.id === registration.eventId);
-    if (event) event.registeredCount = Math.max(0, event.registeredCount - 1);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? `Request failed with status ${res.status}`);
   }
-  return delay(undefined);
+
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
+// --- Events (attendee-facing) ---
+
+export function listEvents(): Promise<EventSummary[]> {
+  return request("/events");
+}
+
+export function getEvent(id: string): Promise<EventDetail> {
+  return request(`/events/${id}`);
+}
+
+export function registerForEvent(
+  eventId: string,
+  payload: { fullName: string; email: string },
+  token: string
+): Promise<{ registrationId: string }> {
+  return request<Registration>(`/events/${eventId}/registrations`, {
+    method: "POST",
+    token,
+    body: { attendeeName: payload.fullName, attendeeEmail: payload.email },
+  }).then((registration) => ({ registrationId: registration.id }));
+}
+
+export function payForRegistration(
+  registrationId: string,
+  token: string
+): Promise<Registration> {
+  return request(`/registrations/${registrationId}/pay`, { method: "POST", token });
+}
+
+export function listMyRegistrations(token: string): Promise<RegistrationWithEvent[]> {
+  return request("/registrations/me", { token });
+}
+
+export function getRegistration(
+  registrationId: string,
+  token: string
+): Promise<RegistrationWithEvent | null> {
+  return request<RegistrationWithEvent>(`/registrations/${registrationId}`, { token }).catch(
+    () => null
+  );
+}
+
+export function cancelRegistration(registrationId: string, token: string): Promise<void> {
+  return request(`/registrations/${registrationId}`, { method: "DELETE", token });
 }
 
 // --- Organizer ---
 
-export async function listOrganizerEvents(): Promise<EventSummary[]> {
-  return delay(mockEvents.map(toSummary));
+export function listOrganizerEvents(token: string): Promise<EventSummary[]> {
+  return request("/events/mine", { token });
 }
 
-export async function createEvent(input: EventInput): Promise<EventDetail> {
-  const event: EventDetail = {
-    ...input,
-    id: `evt_${Math.random().toString(36).slice(2, 10)}`,
-    registeredCount: 0,
-    coverImageUrl: null,
-    status: "published",
-    organizerId: "org_1",
-    organizerName: "You",
-  };
-  mockEvents.unshift(event);
-  return delay(event);
+export function createEvent(input: EventInput, token: string): Promise<EventDetail> {
+  return request("/events", { method: "POST", token, body: input });
 }
 
-export async function updateEvent(
+export function updateEvent(
   id: string,
-  input: EventInput
+  input: EventInput,
+  token: string
 ): Promise<EventDetail> {
-  const index = mockEvents.findIndex((e) => e.id === id);
-  if (index === -1) throw new Error("Event not found");
-  mockEvents[index] = { ...mockEvents[index], ...input };
-  return delay(mockEvents[index]);
+  return request(`/events/${id}`, { method: "PATCH", token, body: input });
 }
 
-export async function deleteEvent(id: string): Promise<void> {
-  const index = mockEvents.findIndex((e) => e.id === id);
-  if (index !== -1) mockEvents.splice(index, 1);
-  return delay(undefined);
-}
-
-export async function listRegistrations(eventId: string): Promise<Registration[]> {
-  return delay(mockRegistrations.filter((r) => r.eventId === eventId));
-}
-
-export async function checkInRegistration(registrationId: string): Promise<Registration> {
-  const registration = mockRegistrations.find((r) => r.id === registrationId);
-  if (!registration) throw new Error("Registration not found");
-  registration.status = "checked_in";
-  return delay(registration);
-}
-
-export async function updateEventStatus(
+export function updateEventStatus(
   id: string,
-  status: EventStatus
+  status: EventStatus,
+  token: string
 ): Promise<EventDetail> {
-  const event = mockEvents.find((e) => e.id === id);
-  if (!event) throw new Error("Event not found");
-  event.status = status;
-  return delay(event);
+  return request(`/events/${id}/status`, {
+    method: "PATCH",
+    token,
+    body: { status: status.toUpperCase() },
+  });
+}
+
+export function deleteEvent(id: string, token: string): Promise<void> {
+  return request(`/events/${id}`, { method: "DELETE", token });
+}
+
+export function listRegistrations(eventId: string, token: string): Promise<Registration[]> {
+  return request(`/events/${eventId}/registrations`, { token });
+}
+
+export function checkInRegistration(
+  registrationId: string,
+  token: string
+): Promise<Registration> {
+  return request(`/registrations/${registrationId}/check-in`, { method: "PATCH", token });
 }
 
 export function exportRegistrationsCsv(
@@ -176,8 +148,4 @@ export function exportRegistrationsCsv(
   link.download = `${event.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-attendees.csv`;
   link.click();
   URL.revokeObjectURL(url);
-}
-
-export function apiUrl(path: string) {
-  return `${API_URL}${path}`;
 }

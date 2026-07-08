@@ -10,8 +10,8 @@ import { toast } from "sonner";
 
 export default function NewEventPage() {
   const router = useRouter();
-  const { status } = useSession();
-  const createEvent = useCreateEvent();
+  const { data: session, status } = useSession();
+  const createEvent = useCreateEvent(session?.accessToken);
 
   useEffect(() => {
     if (status === "unauthenticated") {

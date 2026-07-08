@@ -17,9 +17,9 @@ export default function EditEventPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const { data: event, isLoading } = useEvent(id);
-  const updateEvent = useUpdateEvent(id);
+  const updateEvent = useUpdateEvent(id, session?.accessToken);
 
   useEffect(() => {
     if (status === "unauthenticated") {

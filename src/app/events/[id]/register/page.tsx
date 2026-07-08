@@ -31,7 +31,7 @@ export default function RegisterPage({
   const router = useRouter();
   const { data: session, status } = useSession();
   const { data: event, isLoading } = useEvent(id);
-  const register = useRegisterForEvent(id);
+  const register = useRegisterForEvent(id, session?.accessToken);
 
   const {
     register: registerField,
@@ -57,10 +57,10 @@ export default function RegisterPage({
   }, [session, setValue]);
 
   function onSubmit(values: RegistrationValues) {
-    if (!session?.user?.id) return;
+    if (!session?.accessToken) return;
 
     register.mutate(
-      { ...values, userId: session.user.id },
+      values,
       {
         onSuccess: ({ registrationId }) => {
           if (event?.ticketPrice === 0) {

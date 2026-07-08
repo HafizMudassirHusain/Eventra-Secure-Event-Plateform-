@@ -14,8 +14,8 @@ import { formatEventDate, formatPrice } from "@/lib/format";
 
 export default function OrganizerDashboardPage() {
   const router = useRouter();
-  const { status } = useSession();
-  const { data: events, isLoading } = useOrganizerEvents();
+  const { data: session, status } = useSession();
+  const { data: events, isLoading } = useOrganizerEvents(session?.accessToken);
   const [search, setSearch] = useState("");
 
   useEffect(() => {

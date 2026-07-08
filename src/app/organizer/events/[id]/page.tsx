@@ -35,9 +35,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { formatEventDate, formatPrice } from "@/lib/format";
+import { formatEventDate, formatPrice, toSummary } from "@/lib/format";
 import { exportRegistrationsCsv } from "@/lib/api";
-import { toSummary } from "@/lib/mock-data";
 import { RegistrationStatus } from "@/types/event";
 import { toast } from "sonner";
 
@@ -55,13 +54,14 @@ export default function ManageEventPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const token = session?.accessToken;
   const { data: event, isLoading } = useEvent(id);
-  const { data: registrations, isLoading: registrationsLoading } = useRegistrations(id);
-  const deleteEvent = useDeleteEvent();
-  const updateStatus = useUpdateEventStatus(id);
-  const checkIn = useCheckInRegistration(id);
-  const cancelRegistration = useCancelRegistrationAsOrganizer(id);
+  const { data: registrations, isLoading: registrationsLoading } = useRegistrations(id, token);
+  const deleteEvent = useDeleteEvent(token);
+  const updateStatus = useUpdateEventStatus(id, token);
+  const checkIn = useCheckInRegistration(id, token);
+  const cancelRegistration = useCancelRegistrationAsOrganizer(id, token);
 
   useEffect(() => {
     if (status === "unauthenticated") {

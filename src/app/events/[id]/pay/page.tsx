@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEvent } from "@/hooks/use-events";
 import { usePayForRegistration } from "@/hooks/use-registrations";
 import { Button } from "@/components/ui/button";
@@ -22,8 +23,9 @@ export default function PayPage({
   const { id } = use(params);
   const { registrationId } = use(searchParams);
   const router = useRouter();
+  const { data: session } = useSession();
   const { data: event, isLoading } = useEvent(id);
-  const pay = usePayForRegistration();
+  const pay = usePayForRegistration(session?.accessToken);
 
   function handlePay() {
     if (!registrationId) {
