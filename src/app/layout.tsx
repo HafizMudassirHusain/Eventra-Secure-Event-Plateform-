@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import { auth } from "@/auth";
 import { SessionProvider } from "next-auth/react";
@@ -18,8 +19,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EMS — Event Management System",
-  description: "Discover, register, and pay for events securely.",
+  title: "Eventra — Tickets that only work once",
+  description:
+    "Eventra replaces forwarded screenshots and printable PDFs with a single-use ticket that's verified at the door.",
 };
 
 export default async function RootLayout({
@@ -39,6 +41,7 @@ export default async function RootLayout({
           <QueryProvider>
             <SiteHeader />
             <main className="flex-1">{children}</main>
+            <SiteFooter />
             <Toaster />
           </QueryProvider>
         </SessionProvider>

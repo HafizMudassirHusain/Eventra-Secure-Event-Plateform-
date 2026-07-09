@@ -64,6 +64,13 @@ export function payForRegistration(
   return request(`/registrations/${registrationId}/pay`, { method: "POST", token });
 }
 
+export function createCheckoutSession(
+  registrationId: string,
+  token: string
+): Promise<{ url: string }> {
+  return request(`/registrations/${registrationId}/checkout`, { method: "POST", token });
+}
+
 export function listMyRegistrations(token: string): Promise<RegistrationWithEvent[]> {
   return request("/registrations/me", { token });
 }

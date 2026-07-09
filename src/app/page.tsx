@@ -1,29 +1,85 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { HeroSection } from "@/components/marketing/hero-section";
+import { ScenarioSection } from "@/components/marketing/scenario-section";
+import { TicketLifecycleDemo } from "@/components/marketing/ticket-lifecycle-demo";
+import { TwoPathSection } from "@/components/marketing/two-path-section";
+import { TrustSection } from "@/components/marketing/trust-section";
+import { AngledDivider } from "@/components/marketing/angled-divider";
+import { Reveal } from "@/components/motion/reveal";
 
 export default function Home() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-1 flex-col items-center justify-center px-4 py-24 text-center">
-      <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-        Find events. Register securely. Walk in with a QR code.
-      </h1>
-      <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-        EMS lets organizers run events end-to-end and gives attendees a
-        secure, single-use ticket for entry.
-      </p>
-      <div className="mt-8 flex gap-3">
-        <Button size="lg" nativeButton={false} render={<Link href="/events" />}>
-          Browse events
-        </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          nativeButton={false}
-          render={<Link href="/login" />}
-        >
-          Sign in
-        </Button>
-      </div>
+    <div>
+      <HeroSection />
+
+      <AngledDivider />
+
+      {/* Scenario */}
+      <section className="relative bg-muted/30 px-4 py-20 sm:py-28">
+        <ScenarioSection />
+      </section>
+
+      <AngledDivider flip />
+
+      {/* Interactive demo */}
+      <section className="px-4 py-20 sm:py-28">
+        <Reveal>
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-medium uppercase tracking-wide text-primary">
+              See it happen
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              Watch a ticket do its job
+            </h2>
+          </div>
+        </Reveal>
+        <div className="mt-10">
+          <TicketLifecycleDemo />
+        </div>
+      </section>
+
+      <AngledDivider />
+
+      {/* Two paths */}
+      <section className="relative bg-muted/30 px-4 py-20 sm:py-28">
+        <TwoPathSection />
+      </section>
+
+      <AngledDivider flip />
+
+      {/* Trust */}
+      <section className="px-4 py-20 sm:py-28">
+        <TrustSection />
+      </section>
+
+      <AngledDivider />
+
+      {/* Final CTA */}
+      <Reveal>
+        <section className="mx-auto flex max-w-2xl flex-col items-center px-4 py-24 text-center">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Ready to see it for yourself?
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            No screenshots. No duplicate entries. Just a ticket that works
+            exactly once.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Button size="lg" nativeButton={false} render={<Link href="/signup" />}>
+              Create your account
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/how-it-works" />}
+            >
+              See how it works
+            </Button>
+          </div>
+        </section>
+      </Reveal>
     </div>
   );
 }

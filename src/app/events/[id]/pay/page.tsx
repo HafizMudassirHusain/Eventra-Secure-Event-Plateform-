@@ -1,18 +1,15 @@
 "use client";
 
 import { use } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEvent } from "@/hooks/use-events";
-import { usePayForRegistration } from "@/hooks/use-registrations";
+import { useCreateCheckoutSession } from "@/hooks/use-registrations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/format";
 import { toast } from "sonner";
 
-// Placeholder checkout screen. Stripe Elements/Checkout will replace this
-// button once payments are wired up in the backend phase.
 export default function PayPage({
   params,
   searchParams,
@@ -22,22 +19,20 @@ export default function PayPage({
 }) {
   const { id } = use(params);
   const { registrationId } = use(searchParams);
-  const router = useRouter();
   const { data: session } = useSession();
   const { data: event, isLoading } = useEvent(id);
-  const pay = usePayForRegistration(session?.accessToken);
+  const checkout = useCreateCheckoutSession(session?.accessToken);
 
   function handlePay() {
     if (!registrationId) {
       toast.error("Missing registration — please register again.");
       return;
     }
-    pay.mutate(registrationId, {
-      onSuccess: (registration) => {
-        toast.success("Payment complete — your ticket is ready.");
-        router.push(`/tickets/${registration.id}`);
+    checkout.mutate(registrationId, {
+      onSuccess: ({ url }) => {
+        window.location.href = url;
       },
-      onError: () => toast.error("Payment failed. Please try again."),
+      onError: () => toast.error("Couldn't start checkout. Please try again."),
     });
   }
 
@@ -71,14 +66,10 @@ export default function PayPage({
             <span>{formatPrice(event.ticketPrice, event.currency)}</span>
           </div>
 
-          <div className="rounded-md border border-dashed p-4 text-xs text-muted-foreground">
-            Stripe checkout integrates here in a later phase. This screen
-            simulates a successful payment for now so the registration flow
-            can be tested end-to-end.
-          </div>
-
-          <Button className="w-full" onClick={handlePay} disabled={pay.isPending}>
-            {pay.isPending ? "Processing…" : `Pay ${formatPrice(event.ticketPrice, event.currency)}`}
+          <Button className="w-full" onClick={handlePay} disabled={checkout.isPending}>
+            {checkout.isPending
+              ? "Redirecting to Stripe…"
+              : `Pay ${formatPrice(event.ticketPrice, event.currency)}`}
           </Button>
         </CardContent>
       </Card>

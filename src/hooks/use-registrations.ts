@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   cancelRegistration,
+  createCheckoutSession,
   getRegistration,
   listMyRegistrations,
   payForRegistration,
@@ -14,11 +15,20 @@ export function useMyRegistrations(token: string | undefined) {
   });
 }
 
-export function useRegistration(registrationId: string, token: string | undefined) {
+export function useRegistration(
+  registrationId: string,
+  token: string | undefined,
+  options: { poll?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["registrations", registrationId],
     queryFn: () => getRegistration(registrationId, token as string),
     enabled: Boolean(registrationId) && Boolean(token),
+    refetchInterval: (query) => {
+      if (!options.poll) return false;
+      const status = query.state.data?.status;
+      return status === "confirmed" || status === "checked_in" ? false : 1500;
+    },
   });
 }
 
@@ -30,6 +40,13 @@ export function usePayForRegistration(token: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ["my-registrations"] });
       queryClient.invalidateQueries({ queryKey: ["registrations", registration.id] });
     },
+  });
+}
+
+export function useCreateCheckoutSession(token: string | undefined) {
+  return useMutation({
+    mutationFn: (registrationId: string) =>
+      createCheckoutSession(registrationId, token as string),
   });
 }
 
