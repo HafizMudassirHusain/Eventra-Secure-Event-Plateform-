@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeroSection } from "@/components/marketing/hero-section";
-import { ScenarioSection } from "@/components/marketing/scenario-section";
-import { TicketLifecycleDemo } from "@/components/marketing/ticket-lifecycle-demo";
-import { TwoPathSection } from "@/components/marketing/two-path-section";
+import { FeaturedEventsSection } from "@/components/marketing/featured-events-section";
+import { HowItWorksPreview } from "@/components/marketing/how-it-works-preview";
 import { TrustSection } from "@/components/marketing/trust-section";
 import { AngledDivider } from "@/components/marketing/angled-divider";
 import { Reveal } from "@/components/motion/reveal";
@@ -15,45 +14,26 @@ export default function Home() {
 
       <AngledDivider />
 
-      {/* Scenario */}
+      {/* Featured events */}
       <section className="relative bg-muted/30 px-4 py-20 sm:py-28">
-        <ScenarioSection />
+        <FeaturedEventsSection />
       </section>
 
       <AngledDivider flip />
 
-      {/* Interactive demo */}
+      {/* How it works */}
       <section className="px-4 py-20 sm:py-28">
-        <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-medium uppercase tracking-wide text-primary">
-              See it happen
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              Watch a ticket do its job
-            </h2>
-          </div>
-        </Reveal>
-        <div className="mt-10">
-          <TicketLifecycleDemo />
-        </div>
+        <HowItWorksPreview />
       </section>
 
       <AngledDivider />
 
-      {/* Two paths */}
-      <section className="relative bg-muted/30 px-4 py-20 sm:py-28">
-        <TwoPathSection />
-      </section>
-
-      <AngledDivider flip />
-
       {/* Trust */}
-      <section className="px-4 py-20 sm:py-28">
+      <section className="bg-muted/30 px-4 py-20 sm:py-28">
         <TrustSection />
       </section>
 
-      <AngledDivider />
+      <AngledDivider flip />
 
       {/* Final CTA */}
       <Reveal>
