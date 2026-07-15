@@ -6,6 +6,7 @@ import {
   Registration,
   RegistrationWithEvent,
 } from "@/types/event";
+import { Role } from "@/types/user";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -33,6 +34,12 @@ async function request<T>(
 
   if (res.status === 204) return undefined as T;
   return res.json();
+}
+
+export function becomeOrganizer(
+  token: string
+): Promise<{ accessToken: string; user: { id: string; email: string; name: string; role: Role } }> {
+  return request("/auth/become-organizer", { method: "POST", token });
 }
 
 // --- Events (attendee-facing) ---

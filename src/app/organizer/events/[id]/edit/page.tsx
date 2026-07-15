@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EventForm, eventToFormDefaults, formValuesToInput } from "@/components/organizer/event-form";
 import { useEvent } from "@/hooks/use-events";
 import { useUpdateEvent } from "@/hooks/use-organizer-events";
+import { useRequireOrganizer } from "@/hooks/use-require-organizer";
 import { toast } from "sonner";
 
 export default function EditEventPage({
@@ -17,17 +18,12 @@ export default function EditEventPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
+  const { isAuthorized } = useRequireOrganizer(`/organizer/events/${id}/edit`);
   const { data: event, isLoading } = useEvent(id);
   const updateEvent = useUpdateEvent(id, session?.accessToken);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push(`/login?callbackUrl=/organizer/events/${id}/edit`);
-    }
-  }, [status, router, id]);
-
-  if (isLoading || !event) {
+  if (!isAuthorized || isLoading || !event) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10">
         <Skeleton className="h-8 w-1/2" />

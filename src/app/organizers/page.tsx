@@ -68,7 +68,7 @@ export default function OrganizersPage() {
             than a few dozen people show up. Eventra doesn&apos;t.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button size="lg" nativeButton={false} render={<Link href="/signup" />}>
+            <Button size="lg" nativeButton={false} render={<Link href="/organizer/get-started" />}>
               Create your first event
             </Button>
             <Button
@@ -113,7 +113,12 @@ export default function OrganizersPage() {
           <p className="mt-3 text-muted-foreground">
             No setup calls, no sales team. Create an account and start.
           </p>
-          <Button size="lg" className="mt-6" nativeButton={false} render={<Link href="/signup" />}>
+          <Button
+            size="lg"
+            className="mt-6"
+            nativeButton={false}
+            render={<Link href="/organizer/get-started" />}
+          >
             Get started
           </Button>
         </section>

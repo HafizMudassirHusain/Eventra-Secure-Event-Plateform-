@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useOrganizerEvents } from "@/hooks/use-organizer-events";
+import { useRequireOrganizer } from "@/hooks/use-require-organizer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,16 +13,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatEventDate, formatPrice } from "@/lib/format";
 
 export default function OrganizerDashboardPage() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
+  const { isAuthorized } = useRequireOrganizer("/organizer");
   const { data: events, isLoading } = useOrganizerEvents(session?.accessToken);
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login?callbackUrl=/organizer");
-    }
-  }, [status, router]);
 
   const filteredEvents = useMemo(() => {
     if (!events) return [];
@@ -35,7 +29,7 @@ export default function OrganizerDashboardPage() {
     );
   }, [events, search]);
 
-  if (status === "loading" || status === "unauthenticated") {
+  if (!isAuthorized) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-10">
         <Skeleton className="h-8 w-1/3" />

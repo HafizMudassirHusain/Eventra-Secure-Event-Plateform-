@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -12,6 +12,7 @@ import {
   useRegistrations,
   useUpdateEventStatus,
 } from "@/hooks/use-organizer-events";
+import { useRequireOrganizer } from "@/hooks/use-require-organizer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,7 +55,8 @@ export default function ManageEventPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
+  const { isAuthorized } = useRequireOrganizer(`/organizer/events/${id}`);
   const token = session?.accessToken;
   const { data: event, isLoading } = useEvent(id);
   const { data: registrations, isLoading: registrationsLoading } = useRegistrations(id, token);
@@ -63,13 +65,7 @@ export default function ManageEventPage({
   const checkIn = useCheckInRegistration(id, token);
   const cancelRegistration = useCancelRegistrationAsOrganizer(id, token);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push(`/login?callbackUrl=/organizer/events/${id}`);
-    }
-  }, [status, router, id]);
-
-  if (isLoading || !event) {
+  if (!isAuthorized || isLoading || !event) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10">
         <Skeleton className="h-8 w-1/2" />

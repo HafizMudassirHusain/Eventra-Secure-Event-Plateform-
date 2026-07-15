@@ -48,9 +48,11 @@ export function SiteHeader() {
           <Link href="/organizers" className="text-muted-foreground hover:text-foreground">
             For organizers
           </Link>
-          <Link href="/organizer" className="text-muted-foreground hover:text-foreground">
-            Organizer dashboard
-          </Link>
+          {(session?.user.role === "ORGANIZER" || session?.user.role === "ADMIN") && (
+            <Link href="/organizer" className="text-muted-foreground hover:text-foreground">
+              Organizer dashboard
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">
@@ -68,6 +70,11 @@ export function SiteHeader() {
                 <DropdownMenuItem render={<Link href="/my-registrations" />}>
                   My registrations
                 </DropdownMenuItem>
+                {(session.user.role === "ORGANIZER" || session.user.role === "ADMIN") && (
+                  <DropdownMenuItem render={<Link href="/organizer" />}>
+                    Organizer dashboard
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => signOut()}>
                   Sign out
                 </DropdownMenuItem>
