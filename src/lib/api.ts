@@ -78,6 +78,10 @@ export function createCheckoutSession(
   return request(`/registrations/${registrationId}/checkout`, { method: "POST", token });
 }
 
+export function syncPaymentStatus(registrationId: string, token: string): Promise<void> {
+  return request(`/registrations/${registrationId}/sync-payment`, { method: "POST", token });
+}
+
 export function listMyRegistrations(token: string): Promise<RegistrationWithEvent[]> {
   return request("/registrations/me", { token });
 }

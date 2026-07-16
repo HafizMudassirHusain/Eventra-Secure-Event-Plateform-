@@ -45,6 +45,9 @@ export function SiteHeader() {
           <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground">
             How it works
           </Link>
+          <Link href="/about" className="text-muted-foreground hover:text-foreground">
+            About
+          </Link>
           <Link href="/organizers" className="text-muted-foreground hover:text-foreground">
             For organizers
           </Link>

@@ -3,13 +3,15 @@
 import { use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useRegistration } from "@/hooks/use-registrations";
+import { useRegistration, useSyncPaymentStatus } from "@/hooks/use-registrations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Stripe redirects here immediately after checkout, but confirmation happens
-// asynchronously via webhook — so we poll until the registration flips to
-// confirmed, then hand off to the ticket page.
+// Stripe redirects here immediately after checkout, but confirmation normally
+// happens asynchronously via webhook. Since a local dev webhook listener can
+// miss events (e.g. it wasn't running when payment completed), we also poll
+// a fallback endpoint that checks the payment status directly with Stripe —
+// so this page can't get stuck waiting on a webhook that never arrives.
 export default function PaySuccessPage({
   searchParams,
 }: {
@@ -21,8 +23,18 @@ export default function PaySuccessPage({
   const { data: registration } = useRegistration(registrationId ?? "", session?.accessToken, {
     poll: true,
   });
+  const syncPayment = useSyncPaymentStatus(session?.accessToken);
 
   const isConfirmed = registration?.status === "confirmed" || registration?.status === "checked_in";
+
+  useEffect(() => {
+    if (!registrationId || !session?.accessToken || isConfirmed) return;
+
+    syncPayment.mutate(registrationId);
+    const interval = setInterval(() => syncPayment.mutate(registrationId), 2500);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registrationId, session?.accessToken, isConfirmed]);
 
   useEffect(() => {
     if (isConfirmed && registrationId) {

@@ -5,6 +5,7 @@ import {
   getRegistration,
   listMyRegistrations,
   payForRegistration,
+  syncPaymentStatus,
 } from "@/lib/api";
 
 export function useMyRegistrations(token: string | undefined) {
@@ -47,6 +48,17 @@ export function useCreateCheckoutSession(token: string | undefined) {
   return useMutation({
     mutationFn: (registrationId: string) =>
       createCheckoutSession(registrationId, token as string),
+  });
+}
+
+export function useSyncPaymentStatus(token: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (registrationId: string) => syncPaymentStatus(registrationId, token as string),
+    onSuccess: (_data, registrationId) => {
+      queryClient.invalidateQueries({ queryKey: ["registrations", registrationId] });
+      queryClient.invalidateQueries({ queryKey: ["my-registrations"] });
+    },
   });
 }
 
