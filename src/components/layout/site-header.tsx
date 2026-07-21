@@ -70,6 +70,9 @@ export function SiteHeader() {
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem render={<Link href="/account" />}>
+                  Account
+                </DropdownMenuItem>
                 <DropdownMenuItem render={<Link href="/my-registrations" />}>
                   My registrations
                 </DropdownMenuItem>

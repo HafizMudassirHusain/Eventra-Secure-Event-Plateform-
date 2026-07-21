@@ -50,6 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === "update" && session) {
         if (session.accessToken) token.accessToken = session.accessToken;
         if (session.role) token.role = session.role as Role;
+        if (session.name) token.name = session.name as string;
       }
       return token;
     },

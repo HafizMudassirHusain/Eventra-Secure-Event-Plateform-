@@ -6,7 +6,7 @@ import {
   Registration,
   RegistrationWithEvent,
 } from "@/types/event";
-import { Role } from "@/types/user";
+import { Profile, Role } from "@/types/user";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -40,6 +40,24 @@ export function becomeOrganizer(
   token: string
 ): Promise<{ accessToken: string; user: { id: string; email: string; name: string; role: Role } }> {
   return request("/auth/become-organizer", { method: "POST", token });
+}
+
+export function getProfile(token: string): Promise<Profile> {
+  return request("/auth/me", { token });
+}
+
+export function updateProfile(
+  name: string,
+  token: string
+): Promise<Omit<Profile, "hasPassword">> {
+  return request("/auth/me", { method: "PATCH", token, body: { name } });
+}
+
+export function changePassword(
+  payload: { currentPassword?: string; newPassword: string },
+  token: string
+): Promise<{ success: boolean }> {
+  return request("/auth/change-password", { method: "POST", token, body: payload });
 }
 
 // --- Events (attendee-facing) ---
